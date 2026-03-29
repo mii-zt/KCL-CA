@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
-    "next-dev": "next dev",
+    "next-dev": "next dev --webpack",
     "mock-start": "nodemon mock-server/src/server.ts"
   },
   "dependencies": {
