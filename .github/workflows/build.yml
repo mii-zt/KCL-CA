@@ -16,13 +16,10 @@ jobs:
         with:
           node-version: 18
 
-      - name: frontendに移動
-        run: cd kokkofactory/frontend
-
       - name: install
         run: npm install
-        working-directory: frontend
+        working-directory: kokkofactory/frontend
 
       - name: build
         run: npm run build
-        working-directory: frontend
+        working-directory: kokkofactory/frontend
