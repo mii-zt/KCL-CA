@@ -4,10 +4,10 @@ import { adminDb, adminTimestamp } from "@/utils/firebase/server";
 // --- PUT: 特定の卵の記録を更新 ---
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await request.json();
     const { coop_number, count } = data;
 
