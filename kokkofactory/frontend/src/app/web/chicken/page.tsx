@@ -65,7 +65,7 @@ const useDeadChickenList = () => {
   return { list, listLoading, listError, refreshList };
 };
 
-// --- ✨ カスタムフック：採卵一覧データ取得・管理を追加 ✨ ---
+// --- カスタムフック：採卵一覧データ取得・管理 ---
 const useEggList = () => {
   const [list, setList] = useState<Egg[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -75,7 +75,6 @@ const useEggList = () => {
     setListLoading(true);
     setListError(null);
     try {
-      // APIからデータをGETする (パスは /api/egg)
       const response = await fetch('/api/egg', { method: 'GET' });
 
       if (!response.ok) {
@@ -110,7 +109,6 @@ type DataType = 'egg' | 'deathchicken';
 // --- Component ---
 export default function ChickenFarmDataPage() {
   
-  // 1. ✨ ステートを産卵用と死亡用で分離しました ✨
   const [eggCoopNumber, setEggCoopNumber] = useState(1); // 産卵用 鶏舎番号
   const [eggCountString, setEggCountString] = useState('0'); // 産卵用 個数
 
@@ -123,10 +121,8 @@ export default function ChickenFarmDataPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
 
-  // DeadChicken一覧のカスタムフックを使用
   const { list: rawDeadChickenList, listLoading: deadListLoading, listError: deadListError, refreshList: refreshDeadChickenList } = useDeadChickenList();
   
-  // Egg一覧のカスタムフックを使用
   const { list: rawEggList, listLoading: eggListLoading, listError: eggListError, refreshList: refreshEggList } = useEggList();
 
   const [workerName, setWorkerName] = useState('');
@@ -179,7 +175,6 @@ export default function ChickenFarmDataPage() {
     const coopNumber = eggCoopNumber;
     const dataType: DataType = 'egg';
 
-    // 1. バリデーション (産卵用)
     if (coopNumber < 1 || coopNumber > 9) {
       setMessage('エラー: 鶏舎番号を1から9の中から選択してください。');
       setMessageType('error');
@@ -200,12 +195,11 @@ export default function ChickenFarmDataPage() {
 
     setIsLoading(true);
 
-    // 2. APIパスとペイロードの決定
     let apiPath = `/api/${dataType}`;
     let method='POST';
     if (editingEgg) {
-      apiPath = `/api/${dataType}/${editingEgg.id}`; // 💡 IDを含める（APIが/api/egg/:id を想定）
-      method = 'PUT'; // または 'PATCH'
+      apiPath = `/api/${dataType}/${editingEgg.id}`; 
+      method = 'PUT'; 
     }
     const payload = {
       coop_number: coopNumber,
@@ -229,8 +223,8 @@ export default function ChickenFarmDataPage() {
 
       if (response.ok) {
         let successMessage = editingEgg 
-            ? `✅ 採卵記録 (ID: ${editingEgg.id}) を更新しました！` 
-            : `✅ 鶏舎 ${coopNumber} の卵 ${count} 個を記録しました！`; // ✨ メッセージを編集/新規で切り替え
+            ? `採卵記録を更新しました！` 
+            : `鶏舎 ${coopNumber} の卵 ${count} 個を記録しました！`; //メッセージを編集/新規で切り替え
         setEditingEgg(null); // 編集モードを解除
         refreshEggList(); 
         setMessage(successMessage);
@@ -238,13 +232,13 @@ export default function ChickenFarmDataPage() {
         setEggCountString('0'); // 成功したら個数入力をリセット
         setWorkerName(''); // 成功したら作業者名もリセット
       } else {
-        setMessage(`❌ 登録に失敗しました: ${data.message || '不明なエラー'}`);
+        setMessage(`登録に失敗しました: ${data.message || '不明なエラー'}`);
         setMessageType('error');
       }
     } catch (error) {
       console.error('API通信エラー:', error);
       // @ts-ignore
-      setMessage(`💔 API通信エラーが発生しました: ${error.message}`);
+      setMessage(`API通信エラーが発生しました: ${error.message}`);
       setMessageType('error');
     } finally {
       setIsLoading(false);
@@ -287,7 +281,7 @@ export default function ChickenFarmDataPage() {
 
     // 羽数が0の場合は、記録の必要なしとしてメッセージを表示して終了
     if (count === 0 && !editingDeadChicken) {
-        setMessage(`✅ 鶏舎 ${coopNumber} の死亡数は0羽で記録しました。`);
+        setMessage(`鶏舎 ${coopNumber} の死亡数は0羽で記録しました。`);
         setMessageType('success');
         setDeadCountString('0');
         setCauseOfDeath('');
@@ -300,7 +294,7 @@ export default function ChickenFarmDataPage() {
     let apiPath = `/api/${dataType}`;
     let method='POST';
     if (editingDeadChicken) {
-      apiPath = `/api/${dataType}/${editingDeadChicken.id}`; // 💡 IDを含める（APIが/api/deathchicken/:id を想定）
+      apiPath = `/api/${dataType}/${editingDeadChicken.id}`;
       method = 'PUT';
     }
     const payload = {
@@ -325,8 +319,8 @@ export default function ChickenFarmDataPage() {
 
       if (response.ok) {
         let successMessage = editingDeadChicken
-            ? `✅ 死亡記録 (ID: ${editingDeadChicken.id}) を更新しました！`
-            : `✅ 鶏舎 ${coopNumber} の死んだ鶏 ${count} 羽（死因: ${causeOfDeath}）を記録しました！`; // ✨ メッセージを編集/新規で切り替え
+            ? `死亡記録を更新しました！`
+            : `鶏舎 ${coopNumber} の死んだ鶏 ${count} 羽（死因: ${causeOfDeath}）を記録しました！`; // ✨ メッセージを編集/新規で切り替え
         setEditingDeadChicken(null); // 編集モードを解除
         refreshDeadChickenList(); 
         setMessage(successMessage);
@@ -334,13 +328,13 @@ export default function ChickenFarmDataPage() {
         setDeadCountString('0'); // 成功したら個数入力をリセット
         setCauseOfDeath('');
       } else {
-        setMessage(`❌ 登録に失敗しました: ${data.message || '不明なエラー'}`);
+        setMessage(`登録に失敗しました: ${data.message || '不明なエラー'}`);
         setMessageType('error');
       }
     } catch (error) {
       console.error('API通信エラー:', error);
       // @ts-ignore
-      setMessage(`💔 API通信エラーが発生しました: ${error.message}`);
+      setMessage(`API通信エラーが発生しました: ${error.message}`);
       setMessageType('error');
     } finally {
       setIsLoading(false);
@@ -410,16 +404,13 @@ export default function ChickenFarmDataPage() {
 
             {/* 産卵入力 */}
             <div className={styles.FormContainer}>
-              {/* ✨ handleEggSubmit を使用 ✨ */}
               <form onSubmit={handleEggSubmit} className={styles.form}>
                 <h2 style={{textAlign: "center"}}>産卵入力</h2>
                 {/* 鶏舎番号 */}
                 <label className={styles.label}>
                   🐔 鶏舎番号
                   <select
-                    // ✨ eggCoopNumber を使用 ✨
                     value={eggCoopNumber}
-                    // ✨ setEggCoopNumber を使用 ✨
                     onChange={(e) => setEggCoopNumber(Number(e.target.value))}
                     className={styles.input}
                   >
@@ -435,9 +426,7 @@ export default function ChickenFarmDataPage() {
                   <input
                     type="number"
                     className={styles.input}
-                    // ✨ eggCountString を使用 ✨
                     value={eggCountString}
-                    // ✨ setEggCountString を使用 ✨
                     onChange={(e) => setEggCountString(e.target.value)}
                   />
                   <span className={styles.unit}>個</span>
@@ -464,16 +453,13 @@ export default function ChickenFarmDataPage() {
 
             {/* 死亡入力 */}
             <div className={styles.FormContainer}>
-              {/* ✨ handleDeadChickenSubmit を使用 ✨ */}
               <form onSubmit={handleDeadChickenSubmit} className={styles.form}>
                 <h2 style={{textAlign: "center"}}>死んだ鶏</h2>
                 {/* 鶏舎番号 */}
                 <label className={styles.label}>
                   🐔 鶏舎番号
                   <select
-                    // ✨ deadCoopNumber を使用 ✨
                     value={deadCoopNumber}
-                    // ✨ setDeadCoopNumber を使用 ✨
                     onChange={(e) => setDeadCoopNumber(Number(e.target.value))}
                     className={styles.input}
                   >
@@ -489,15 +475,13 @@ export default function ChickenFarmDataPage() {
                   <input
                     type="number"
                     className={styles.input}
-                    // ✨ deadCountString を使用 ✨
                     value={deadCountString}
-                    // ✨ setDeadCountString を使用 ✨
                     onChange={(e) => setDeadCountString(e.target.value)}
                   />
                   <span className={styles.unit}>羽</span>
                 </div>
                 
-                {/* ✨ 死因入力欄を追加 ✨ */}
+                {/* 死因入力 */}
                 <label className={styles.label}>
                   💀 死因
                   <input
@@ -552,7 +536,6 @@ export default function ChickenFarmDataPage() {
                           <td>{egg.count}</td>
                           <td>{egg.worker_name}</td>
                           <td>
-                            {/* ここに編集ボタンとかアイコンを置ける */}
                             <button className={styles.editButton} onClick={() => handleEditClick('egg', egg)}>✏️</button>
                           </td>
                         </tr>
@@ -593,7 +576,6 @@ export default function ChickenFarmDataPage() {
                           <td>{chicken.count}</td>
                           <td>{chicken.cause_of_death}</td>
                           <td>
-                            {/* ここに編集ボタンとかアイコンを置ける */}
                             <button className={styles.editButton} onClick={() => handleEditClick('deathchicken', chicken)}>✏️</button>
                           </td>
                         </tr>
