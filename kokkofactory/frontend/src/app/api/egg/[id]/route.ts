@@ -4,12 +4,13 @@ import { adminDb, adminTimestamp } from "@/utils/firebase/server";
 // --- PUT: 特定の卵の記録を更新 ---
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await request.json();
-    const { coop_number, count } = data;
+    const { coop_number, count, worker_name } = data;
+    
 
     if (!id) {
       return NextResponse.json(
@@ -18,9 +19,9 @@ export async function PUT(
       );
     }
 
-    if (coop_number === undefined || count === undefined) {
+    if (coop_number === undefined || count === undefined || worker_name === undefined) {
       return NextResponse.json(
-        { message: "鶏舎番号と個数は必須です。" },
+        { message: "鶏舎番号、個数、作業者名は必須です。" },
         { status: 400 }
       );
     }
@@ -55,6 +56,7 @@ export async function PUT(
       coop_number: coopNumberInt,
       count: countInt,
       updatedAt: adminTimestamp.now(),
+      worker_name: worker_name,
     });
 
     return NextResponse.json(
