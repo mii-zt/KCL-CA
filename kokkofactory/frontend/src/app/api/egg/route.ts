@@ -8,12 +8,12 @@ import { adminTimestamp } from "@/utils/firebase/server";
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { coop_number, count } = data;
+    const { coop_number, count , worker_name} = data;
 
     // 必須フィールドのチェック
-    if (coop_number === undefined || count === undefined) {
+    if (coop_number === undefined || count === undefined || worker_name === undefined) {
       return NextResponse.json(
-        { message: '鶏舎番号 (coop_number) と個数 (count) は必須です。' },
+        { message: '鶏舎番号 (coop_number) と個数 (count) と作業者名 (worker_name) は必須です。' },
         { status: 400 }
       );
     }
@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     const docRef = await adminDb.collection("eggs").add({
       coop_number: coopNumberInt,
       count: countInt,
+      worker_name: worker_name,
       date: adminTimestamp.now(),
     });
 

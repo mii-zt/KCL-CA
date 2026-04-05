@@ -24,6 +24,7 @@ interface Egg {
   coop_number: number;
   count: number;
   date: string; // ISO 8601形式の文字列
+  worker_name: string; // 作業者名
 }
 
 // --- カスタムフック：死鶏一覧データ取得・管理 ---
@@ -128,6 +129,8 @@ export default function ChickenFarmDataPage() {
   // Egg一覧のカスタムフックを使用
   const { list: rawEggList, listLoading: eggListLoading, listError: eggListError, refreshList: refreshEggList } = useEggList();
 
+  const [workerName, setWorkerName] = useState('');
+
   // 編集中のデータ
   const [editingEgg, setEditingEgg] = useState<Egg | null>(null);
   const [editingDeadChicken, setEditingDeadChicken] = useState<DeadChicken | null>(null);
@@ -189,6 +192,12 @@ export default function ChickenFarmDataPage() {
       return;
     }
     
+    if (!workerName.trim()) {
+      setMessage('エラー: 記入者の名前を入力してください。');
+      setMessageType('error');
+      return;
+    }
+
     setIsLoading(true);
 
     // 2. APIパスとペイロードの決定
@@ -201,6 +210,7 @@ export default function ChickenFarmDataPage() {
     const payload = {
       coop_number: coopNumber,
       count: count,
+      worker_name: workerName.trim(),
     };
 
     try {
@@ -226,6 +236,7 @@ export default function ChickenFarmDataPage() {
         setMessage(successMessage);
         setMessageType('success');
         setEggCountString('0'); // 成功したら個数入力をリセット
+        setWorkerName(''); // 成功したら作業者名もリセット
       } else {
         setMessage(`❌ 登録に失敗しました: ${data.message || '不明なエラー'}`);
         setMessageType('error');
@@ -238,7 +249,7 @@ export default function ChickenFarmDataPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [eggCoopNumber, eggCountString, refreshEggList]); 
+  }, [eggCoopNumber, eggCountString, workerName, refreshEggList]); 
 
 
   /**
@@ -360,6 +371,7 @@ export default function ChickenFarmDataPage() {
             // フォームに入力値をセット
             setEggCoopNumber(eggItem.coop_number);
             setEggCountString(String(eggItem.count));
+            setWorkerName(eggItem.worker_name);
             
             setMessage(`🐔 採卵記録 (ID: ${eggItem.id}) を編集モードにしました。`);
             setMessageType('success');
@@ -430,6 +442,17 @@ export default function ChickenFarmDataPage() {
                   />
                   <span className={styles.unit}>個</span>
                 </div>
+                {/* 作業者名入力 */}
+                <label className={styles.label}>
+                  🕒 作業者名
+                  <input
+                    type="text"
+                    className={styles.input}
+                    value={workerName}
+                    onChange={(e) => setWorkerName(e.target.value)}
+                    placeholder="例: 山田太郎"
+                  />
+                </label>
                 {/* 保存ボタン */}
                 <div className={commonStyles.buttonContainer}>
                   <button type="submit" disabled={isLoading} className={commonStyles.button}>
@@ -512,6 +535,7 @@ export default function ChickenFarmDataPage() {
                       <th>日時</th>
                       <th>鶏舎番号</th>
                       <th>個数</th>
+                      <th>作業者名</th>
                       <th>変更</th>
                     </tr>
                   </thead>
@@ -526,6 +550,7 @@ export default function ChickenFarmDataPage() {
                           <td>{formattedDate}</td>
                           <td>{egg.coop_number}</td>
                           <td>{egg.count}</td>
+                          <td>{egg.worker_name}</td>
                           <td>
                             {/* ここに編集ボタンとかアイコンを置ける */}
                             <button className={styles.editButton} onClick={() => handleEditClick('egg', egg)}>✏️</button>
